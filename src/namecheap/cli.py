@@ -19,9 +19,9 @@ def get_args():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--add", action="store_true", help="Use to add a record")
     group.add_argument("--delete", action="store_true", help="Use to remove a record")
-    group.add_argument("--list", action="store_true", help="List existing records")
+    group.add_argument("--list", action="store_true", help="List existing records or domains")
 
-    parser.add_argument("--domain", type=str, default="example.org", help="Domain to manage, default is \"example.org\", don't forget to override")
+    parser.add_argument("--domain", type=str, default=None, help="Domain to manage")
 
     parser.add_argument("--type", type=str, default="A", help="Record type, default is \"A\"")
     parser.add_argument("--name", type=str, default="test", help="Record name, default is \"test\"")
@@ -47,7 +47,7 @@ def record_delete(api, hostname, address, record_type="A", ttl=300):
     api.domains_dns_delHost(domain, record)
 
 
-def record_add(api, record_type, hostname, address, ttl=300):
+def record_add(api, domain, record_type, hostname, address, ttl=300):
     record = {
         "Type": record_type,
         "Name": hostname,
@@ -63,8 +63,8 @@ def main():
     with open(os.path.join(os.getenv("HOME"), ".config", "namecheap",
                        "namecheap.json")) as cfg:
         config = json.loads(cfg.read())
-    if args.sandbox:
 
+    if args.sandbox:
        api_key = config['sandbox_key']
        username = config['sandbox_username']
     else:
@@ -73,8 +73,10 @@ def main():
 
     ip_address = config['ip_address']
     domain = args.domain
-
-    print("domain: %s" % domain)
+    if domain:
+        print("domain: %s" % domain)
+    else:
+        print("Domains:")
 
     api = Api(username,
               api_key,
@@ -85,6 +87,8 @@ def main():
 
     if args.add:
         record_add(
+            api,
+            domain,
             args.type,
             args.name,
             args.address,
@@ -92,10 +96,14 @@ def main():
         )
     elif args.delete:
         record_delete(
+            api,
             args.name,
             args.address,
             args.type
         )
     elif args.list:
+        if not domain:
+           [print(f"Name: {i['Name']}") for i in api.domains_getList()]
+           exit()
         for line in list_records(api, domain):
             print("\t%s \t%s\t%s -> %s" % (line["Type"], line["TTL"], line["Name"], line["Address"]))
