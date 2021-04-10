@@ -16,9 +16,11 @@ setup(
     author='Bemmu Sepponen',
     author_email='me@bemmu.com',
     description='Namecheap API client in Python',
-    py_modules=['namecheap'],
+    package_dir={"": "src"},
     platforms='any',
     install_requires=['requests'],
+    entry_points={
+        "console_scripts": ["namecheap = cdc.cli:main"]},
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',

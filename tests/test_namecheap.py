@@ -1,16 +1,21 @@
-# Run "nosetests" on command line to run these.
-from namecheap import Api, ApiError
-from nose.tools import *  # pip install nose
+import json
+import os
+
+import pytest
+
+from namecheap.client import Api, ApiError
 
 api_key = ''  # You create this on Namecheap site
 username = ''
 ip_address = ''  # Your IP address that you whitelisted on the site
 
-# If you prefer, you can put the above in credentials.py instead
-try:
-    from credentials import api_key, username, ip_address
-except:
-    pass
+with open(os.path.join(os.getenv("HOME"), ".config", "namecheap",
+                       "namecheap.json")) as cfg:
+        config = json.loads(cfg.read())
+
+api_key = config['sandbox_key']
+username = config['sandbox_username']
+ip_address = config['ip_address']
 
 def random_domain_name():
     import random
@@ -22,13 +27,13 @@ def random_domain_name():
 def test_domain_taken():
     api = Api(username, api_key, username, ip_address, sandbox=True)
     domain_name = "google.com"
-    assert_equal(api.domains_check(domain_name), False)
+    assert api.domains_check(domain_name) == False
 
 
 def test_domain_available():
     api = Api(username, api_key, username, ip_address, sandbox=True)
     domain_name = random_domain_name()
-    assert_equal(api.domains_check(domain_name), True)
+    assert api.domains_check(domain_name) == True
 
 
 def test_register_domain():
@@ -56,14 +61,14 @@ def test_domains_getList():
     iter(api.domains_getList())
 
 
-@raises(ApiError)
 def test_domains_dns_setDefault_on_nonexisting_domain():
     api = Api(username, api_key, username, ip_address, sandbox=True)
 
     domain_name = random_domain_name()
 
     # This should fail because the domain does not exist
-    api.domains_dns_setDefault(domain_name)
+    with pytest.raises(ApiError):
+        api.domains_dns_setDefault(domain_name)
 
 
 def test_domains_dns_setDefault_on_existing_domain():
@@ -159,7 +164,7 @@ def test_domains_dns_getHosts():
             'IsDDNSEnabled': 'false'
         }
     ]
-    assert_equal(hosts, expected_result)
+    assert hosts == expected_result
 
 
 def test_domains_dns_addHost():
@@ -212,7 +217,7 @@ def test_domains_dns_addHost():
             'IsDDNSEnabled': 'false'
         }
     ]
-    assert_equal(hosts, expected_result)
+    assert hosts == expected_result
 
 
 def test_domains_dns_bulkAddHosts():
@@ -284,7 +289,7 @@ def test_domains_dns_delHost():
             'IsDDNSEnabled': 'false'
         }
     ]
-    assert_equal(hosts, expected_result)
+    assert hosts == expected_result
 
 
 def test_list_of_dictionaries_to_numbered_payload():
@@ -303,4 +308,4 @@ def test_list_of_dictionaries_to_numbered_payload():
         'cat3': 'meow'
     }
 
-    assert_equal(result, expected_result)
+    assert result == expected_result
