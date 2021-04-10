@@ -20,7 +20,7 @@ setup(
     platforms='any',
     install_requires=['requests'],
     entry_points={
-        "console_scripts": ["namecheap = cdc.cli:main"]},
+        "console_scripts": ["namecheap = namecheap.cli:main"]},
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
