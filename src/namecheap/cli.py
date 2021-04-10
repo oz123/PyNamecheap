@@ -8,13 +8,6 @@ api_key = ''  # You create this on Namecheap site
 username = ''
 ip_address = ''  # Your IP address that you whitelisted on the site
 
-with open(os.path.join(os.getenv("HOME"), ".config", "namecheap",
-                       "namecheap.json")) as cfg:
-        config = json.loads(cfg.read())
-
-api_key = config['api_key']
-username = config['username']
-ip_address = config['ip_address']
 
 
 def get_args():
@@ -40,11 +33,11 @@ def get_args():
     return args
 
 
-def list_records():
+def list_records(api, domain):
     return api.domains_dns_getHosts(domain)
 
 
-def record_delete(hostname, address, record_type="A", ttl=300):
+def record_delete(api, hostname, address, record_type="A", ttl=300):
     record = {
         "Type": record_type,
         "Name": hostname,
@@ -54,7 +47,7 @@ def record_delete(hostname, address, record_type="A", ttl=300):
     api.domains_dns_delHost(domain, record)
 
 
-def record_add(record_type, hostname, address, ttl=300):
+def record_add(api, record_type, hostname, address, ttl=300):
     record = {
         "Type": record_type,
         "Name": hostname,
@@ -67,10 +60,28 @@ def record_add(record_type, hostname, address, ttl=300):
 def main():
     args = get_args()
 
+    with open(os.path.join(os.getenv("HOME"), ".config", "namecheap",
+                       "namecheap.json")) as cfg:
+        config = json.loads(cfg.read())
+    if args.sandbox:
+
+       api_key = config['sandbox_key']
+       username = config['sandbox_username']
+    else:
+       api_key = config['api_key']
+       username = config['username']
+
+    ip_address = config['ip_address']
     domain = args.domain
+
     print("domain: %s" % domain)
 
-    api = Api(username, api_key, username, ip_address, sandbox=args.sandbox, debug=args.debug)
+    api = Api(username,
+              api_key,
+              username,
+              ip_address,
+              sandbox=args.sandbox,
+              debug=args.debug)
 
     if args.add:
         record_add(
@@ -86,5 +97,5 @@ def main():
             args.type
         )
     elif args.list:
-        for line in list_records():
+        for line in list_records(api, domain):
             print("\t%s \t%s\t%s -> %s" % (line["Type"], line["TTL"], line["Name"], line["Address"]))
