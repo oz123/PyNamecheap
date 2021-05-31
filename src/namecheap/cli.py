@@ -37,7 +37,7 @@ def list_records(api, domain):
     return api.domains_dns_getHosts(domain)
 
 
-def record_delete(api, hostname, address, record_type="A", ttl=300):
+def record_delete(api, domain, hostname, address, record_type="A", ttl=300):
     record = {
         "Type": record_type,
         "Name": hostname,
@@ -97,6 +97,7 @@ def main():
     elif args.delete:
         record_delete(
             api,
+            domain,
             args.name,
             args.address,
             args.type
