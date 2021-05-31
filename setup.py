@@ -1,7 +1,7 @@
 
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def read(fname):
@@ -17,6 +17,7 @@ setup(
     author_email='me@bemmu.com',
     description='Namecheap API client in Python',
     package_dir={"": "src"},
+    packages=find_packages(where="src"),
     platforms='any',
     install_requires=['requests'],
     entry_points={
